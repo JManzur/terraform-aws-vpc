@@ -1,12 +1,7 @@
+/* Required variables */
 variable "name_prefix" {
   description = "[REQUIRED] Prefix to use in VPC resource naming and tagging"
   type        = string
-}
-
-variable "one_nat_per_subnet" {
-  description = "[OPTIONAL] If set to false, only one NAT gateway will be deploy per private subnet"
-  type        = bool
-  default     = false
 }
 
 variable "vpc_cidr" {
@@ -37,6 +32,13 @@ variable "private_subnet_list" {
     newbits = number
     netnum  = number
   }))
+}
+
+/* Optionals variables */
+variable "one_nat_per_subnet" {
+  description = "[OPTIONAL] If set to false, only one NAT gateway will be deploy per private subnet"
+  type        = bool
+  default     = false
 }
 
 variable "logs_retention" {

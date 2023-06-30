@@ -1,7 +1,3 @@
-# Datasources to get the AWS Region and Account ID
-data "aws_region" "current" {}
-data "aws_caller_identity" "current" {}
-
 # S3 VPC Flow Logs IAM Policy Document
 data "aws_iam_policy_document" "s3" {
   count = var.vpc_flow_logs_destination == "S3" ? 1 : 0

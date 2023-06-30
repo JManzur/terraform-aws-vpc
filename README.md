@@ -10,16 +10,12 @@ If the `one_nat_per_subnet` parameter is set to true, means that a network addre
 
 ## How-To use this module:
 
-The following is an example of how to use the module, here all the input variables are set directly in the module's resource block, but a better practice would be to declare the variables in a variables.tf file and have the values of the variables in a .tfvars file.
+The following is an example of how to use the module, here the minimum input variables are set directly in the module's resource block, but a better practice would be to declare the variables in a variables.tf file and have the values of the variables in a .tfvars file.
 
 ```bash
 module "vpc" {
-  source                    = "git::https://github.com/JManzur/aws-vpc.git?ref=v1.1.6"
+  source                    = "git::https://github.com/JManzur/aws-vpc.git?ref=vX.X.X"
   name_prefix               = "Demo"
-  aws_region                = "us-east-1"
-  logs_retention            = 0
-  vpc_flow_logs_destination = "S3"
-  one_nat_per_subnet        = true
   vpc_cidr                  = "10.22.0.0/16"
   public_subnet_list = [
     {
@@ -73,6 +69,7 @@ cidrsubnet(prefix, newbits, netnum)
 ### Full example of the resulting CIDR, naming, and AZ assignment:
 
 ![App Screenshot](images/cidrsubnet.png)
+
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Requirements
 
