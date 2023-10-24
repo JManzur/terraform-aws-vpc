@@ -69,8 +69,3 @@ cidrsubnet(prefix, newbits, netnum)
 ### Full example of the resulting CIDR, naming, and AZ assignment:
 
 ![App Screenshot](images/cidrsubnet.png)
-
-
-<!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
-README.md updated successfully
-<!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
