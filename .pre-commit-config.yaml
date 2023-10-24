@@ -6,9 +6,6 @@ repos:
       - id: terraform_validate
       - id: terraform_tflint
       - id: terraform_tfsec
-      - id: terraform_docs
-        args:
-          - --config=__GIT_WORKING_DIR__/.terraform-docs.yml
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.18.0
     hooks:
