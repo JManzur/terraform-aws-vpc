@@ -47,7 +47,7 @@ jobs:
       run: terraform validate
 
     - name: Run tflint
-      run: tflint --config=.tflint.hcl
+      run: tflint --init && tflint --config=.tflint.hcl
 
     - name: Run terraform-docs
       run: terraform-docs . --config .terraform-docs.yml
