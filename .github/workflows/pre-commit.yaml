@@ -7,33 +7,63 @@ on:
 jobs:
   main:
     runs-on: ubuntu-latest
+    env:
+      TF_VERSION: latest
     steps:
 
     - name: Install Python
       uses: actions/setup-python@v4
       with:
         python-version: 3.9
-    
+
     - name: Install Go
       uses: actions/setup-go@v2
       with:
         go-version: 1.20.5
 
-    - name: Install tflint
+    - name: Setup Terraform CLI
+      uses: hashicorp/setup-terraform@v2.0.3
+      with:
+        terraform_version: ${{ env.TF_VERSION }}
+    - name: Setup tflint
       run: curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
 
-    - name: Install tfsec
+    - name: Setup tfsec
       run: curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
 
-    - name: Install terraform-docs
+    - name: Setup terraform-docs
       run: go install github.com/terraform-docs/terraform-docs@v0.16.0
 
     - name: Pull source code
       uses: actions/checkout@v3
 
-    - name: Install pre-commit
-      uses: pre-commit/action@v3.0.0
+    - name: Terraform Init
+      run: terraform init --upgrade
 
-    - name: Run pre-commit hooks
-      uses: pre-commit-ci/lite-action@v1.0.1
-      if: always()
+    - name: Terraform fmt
+      run: terraform fmt --recursive
+
+    - name: Terraform Validate
+      run: terraform validate
+
+    - name: Run tflint
+      run: tflint
+
+    - name: Run terraform-docs
+      run: terraform-docs . --config .terraform-docs.yml
+
+    - name: Run tfsec
+      run: tfsec
+
+    - name: Check for changes
+      run: |
+        if [ -n "$(git status --porcelain)" ]; then
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add .
+          git commit -m "Auto commit by GitHub Actions - $(date +%F-%T)"
+          git push
+        else
+          echo "No changes detected, skipping git add, git commit, and git push"
+          exit 0
+        fi

@@ -1,6 +1,7 @@
 # S3 VPC Flow Logs IAM Policy Document
 data "aws_iam_policy_document" "s3" {
   count = var.vpc_flow_logs_destination == "S3" ? 1 : 0
+
   statement {
     sid    = "SendVPCFlowLogs"
     effect = "Allow"
@@ -13,7 +14,7 @@ data "aws_iam_policy_document" "s3" {
       "logs:CreateLogDelivery",
       "logs:DeleteLogDelivery"
     ]
-    resources = ["arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:*"]
+    resources = ["arn:aws:logs:${local.aws_region}:${local.aws_account_id}:*"]
   }
 
   statement {
@@ -29,8 +30,8 @@ data "aws_iam_policy_document" "s3" {
       "s3:GetBucketPolicy"
     ]
     resources = [
-      "arn:aws:s3:::${aws_vpc.vpc.id}-flow-logs",
-      "arn:aws:s3:::${aws_vpc.vpc.id}-flow-logs/*",
+      "arn:aws:s3:::${aws_vpc.this.id}-flow-logs",
+      "arn:aws:s3:::${aws_vpc.this.id}-flow-logs/*",
     ]
   }
 }
@@ -38,6 +39,7 @@ data "aws_iam_policy_document" "s3" {
 # CloudWatch VPC Flow Logs IAM Policy Document
 data "aws_iam_policy_document" "cloudwatch" {
   count = var.vpc_flow_logs_destination == "CloudWatch" ? 1 : 0
+
   statement {
     sid    = "SendVPCFlowLogs"
     effect = "Allow"
@@ -50,12 +52,12 @@ data "aws_iam_policy_document" "cloudwatch" {
       "logs:CreateLogDelivery",
       "logs:DeleteLogDelivery"
     ]
-    resources = ["arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:*"]
+    resources = ["arn:aws:logs:${local.aws_region}:${local.aws_account_id}:*"]
   }
 }
 
 # VPC Flow Logs IAM Role Policy Document
-data "aws_iam_policy_document" "vpc_fl_role_source" {
+data "aws_iam_policy_document" "vpc_flow_logs" {
   statement {
     sid    = "VPCFlowLogs"
     effect = "Allow"
@@ -68,7 +70,7 @@ data "aws_iam_policy_document" "vpc_fl_role_source" {
 }
 
 # VPC Flow Logs IAM Policy
-resource "aws_iam_policy" "vpc_fl_policy" {
+resource "aws_iam_policy" "vpc_flow_logs" {
   name        = lower("${var.name_prefix}-vpc-flow-logs-policy")
   path        = "/"
   description = "VPC Flow Logs Policy"
@@ -77,14 +79,14 @@ resource "aws_iam_policy" "vpc_fl_policy" {
 }
 
 # VPC Flow Logs IAM Role
-resource "aws_iam_role" "vpc_fl_policy_role" {
+resource "aws_iam_role" "vpc_flow_logs" {
   name               = lower("${var.name_prefix}-vpc-flow-logs-role")
-  assume_role_policy = data.aws_iam_policy_document.vpc_fl_role_source.json
+  assume_role_policy = data.aws_iam_policy_document.vpc_flow_logs.json
   tags               = { Name = lower("${var.name_prefix}-vpc-flow-logs-role") }
 }
 
 # Attach VPC Flow Logs Role and Policy
-resource "aws_iam_role_policy_attachment" "vpc_fl_attach" {
-  role       = aws_iam_role.vpc_fl_policy_role.name
-  policy_arn = aws_iam_policy.vpc_fl_policy.arn
+resource "aws_iam_role_policy_attachment" "vpc_flow_logs" {
+  role       = aws_iam_role.vpc_flow_logs.name
+  policy_arn = aws_iam_policy.vpc_flow_logs.arn
 }
