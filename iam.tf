@@ -1,6 +1,6 @@
 # S3 VPC Flow Logs IAM Policy Document
 data "aws_iam_policy_document" "s3" {
-  count = var.vpc_flow_logs_destination == "S3" ? 1 : 0
+  count = var.vpc_flow_logs.enabled && var.vpc_flow_logs.destination == "S3" ? 1 : 0
 
   statement {
     sid    = "SendVPCFlowLogs"
@@ -38,7 +38,7 @@ data "aws_iam_policy_document" "s3" {
 
 # CloudWatch VPC Flow Logs IAM Policy Document
 data "aws_iam_policy_document" "cloudwatch" {
-  count = var.vpc_flow_logs_destination == "CloudWatch" ? 1 : 0
+  count = var.vpc_flow_logs.enabled && var.vpc_flow_logs.destination == "CloudWatch" ? 1 : 0
 
   statement {
     sid    = "SendVPCFlowLogs"
@@ -71,22 +71,30 @@ data "aws_iam_policy_document" "vpc_flow_logs" {
 
 # VPC Flow Logs IAM Policy
 resource "aws_iam_policy" "vpc_flow_logs" {
+  count = var.vpc_flow_logs.enabled ? 1 : 0
+
   name        = lower("${var.name_prefix}-vpc-flow-logs-policy")
   path        = "/"
   description = "VPC Flow Logs Policy"
-  policy      = var.vpc_flow_logs_destination == "S3" ? data.aws_iam_policy_document.s3[0].json : data.aws_iam_policy_document.cloudwatch[0].json
-  tags        = { Name = lower("${var.name_prefix}-vpc-flow-logs-policy") }
+  policy      = var.vpc_flow_logs.enabled && var.vpc_flow_logs.destination == "S3" ? data.aws_iam_policy_document.s3[0].json : data.aws_iam_policy_document.cloudwatch[0].json
+
+  tags = { Name = lower("${var.name_prefix}-vpc-flow-logs-policy") }
 }
 
 # VPC Flow Logs IAM Role
 resource "aws_iam_role" "vpc_flow_logs" {
+  count = var.vpc_flow_logs.enabled ? 1 : 0
+
   name               = lower("${var.name_prefix}-vpc-flow-logs-role")
   assume_role_policy = data.aws_iam_policy_document.vpc_flow_logs.json
-  tags               = { Name = lower("${var.name_prefix}-vpc-flow-logs-role") }
+
+  tags = { Name = lower("${var.name_prefix}-vpc-flow-logs-role") }
 }
 
 # Attach VPC Flow Logs Role and Policy
 resource "aws_iam_role_policy_attachment" "vpc_flow_logs" {
-  role       = aws_iam_role.vpc_flow_logs.name
-  policy_arn = aws_iam_policy.vpc_flow_logs.arn
+  count = var.vpc_flow_logs.enabled ? 1 : 0
+
+  role       = aws_iam_role.vpc_flow_logs[0].name
+  policy_arn = aws_iam_policy.vpc_flow_logs[0].arn
 }

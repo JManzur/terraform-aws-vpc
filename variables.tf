@@ -36,65 +36,111 @@ variable "private_subnet_list" {
 
 /* Optionals variables */
 variable "one_nat_per_subnet" {
-  description = "[OPTIONAL] If set to false, only one NAT gateway will be deploy per private subnet"
+  description = "[OPTIONAL] If set to false, only one NAT gateway will be deploy on the vpc. If set to true, one NAT gateway will be deployed per private subnet."
   type        = bool
   default     = false
 }
 
-variable "logs_retention" {
-  description = "[OPTIONAL] The number of days to retain VPC Flow Logs in CloudWatch"
-  type        = number
-  default     = 0
+variable "vpc_flow_logs" {
+  description = "[OPTIONAL] The configuration of the VPC Flow Logs"
+  type = object({
+    enabled              = bool
+    destination          = optional(string)
+    aggregation_interval = optional(number)
+    logs_retention       = optional(number)
+  })
 
-  validation {
-    condition = (
-      var.logs_retention == 0 ||
-      var.logs_retention == 1 ||
-      var.logs_retention == 3 ||
-      var.logs_retention == 5 ||
-      var.logs_retention == 7 ||
-      var.logs_retention == 14 ||
-      var.logs_retention == 30 ||
-      var.logs_retention == 60 ||
-      var.logs_retention == 90 ||
-      var.logs_retention == 120 ||
-      var.logs_retention == 150 ||
-      var.logs_retention == 180 ||
-      var.logs_retention == 365 ||
-      var.logs_retention == 400 ||
-      var.logs_retention == 545 ||
-      var.logs_retention == 731 ||
-      var.logs_retention == 1827 ||
-      var.logs_retention == 3653
-    )
-    error_message = "The value must be one of the followings: 0,1,3,5,7,14,30,60,90,120,150,180,365,400,545,731,1827,3653."
+  default = {
+    enabled              = false
+    destination          = null
+    aggregation_interval = null
+    logs_retention       = 0
   }
-}
-
-variable "vpc_flow_logs_destination" {
-  description = "[OPTIONAL] The type of the logging destination"
-  type        = string
-  default     = "CloudWatch"
 
   validation {
     condition = (
-      var.vpc_flow_logs_destination == "S3" ||
-      var.vpc_flow_logs_destination == "CloudWatch"
+      var.vpc_flow_logs.destination == "S3" ||
+      var.vpc_flow_logs.destination == "CloudWatch" ||
+      var.vpc_flow_logs.destination == null
     )
     error_message = "S3 or CloudWatch are the only valid values. (case sensitive)."
   }
-}
-
-variable "aggregation_interval" {
-  description = "[OPTIONAL] The maximum interval of time during which a flow of packets is captured and aggregated into a flow log record."
-  type        = number
-  default     = 600
 
   validation {
     condition = (
-      var.aggregation_interval == 60 ||
-      var.aggregation_interval == 600
+      var.vpc_flow_logs.aggregation_interval == 60 ||
+      var.vpc_flow_logs.aggregation_interval == 600 ||
+      var.vpc_flow_logs.aggregation_interval == null
     )
     error_message = "60 seconds (1 minute) or 600 seconds (10 minutes), are the only valid values."
   }
+
+  validation {
+    condition = (
+      var.vpc_flow_logs.logs_retention == 0 || # 0 means never expire
+      var.vpc_flow_logs.logs_retention == 1 ||
+      var.vpc_flow_logs.logs_retention == 3 ||
+      var.vpc_flow_logs.logs_retention == 5 ||
+      var.vpc_flow_logs.logs_retention == 7 ||
+      var.vpc_flow_logs.logs_retention == 14 ||
+      var.vpc_flow_logs.logs_retention == 30 ||
+      var.vpc_flow_logs.logs_retention == 60 ||
+      var.vpc_flow_logs.logs_retention == 90 ||
+      var.vpc_flow_logs.logs_retention == 120 ||
+      var.vpc_flow_logs.logs_retention == 150 ||
+      var.vpc_flow_logs.logs_retention == 180 ||
+      var.vpc_flow_logs.logs_retention == 365 ||
+      var.vpc_flow_logs.logs_retention == 400 ||
+      var.vpc_flow_logs.logs_retention == 545 ||
+      var.vpc_flow_logs.logs_retention == 731 ||
+      var.vpc_flow_logs.logs_retention == 1827 ||
+      var.vpc_flow_logs.logs_retention == 3653 ||
+      var.vpc_flow_logs.logs_retention == null
+    )
+    error_message = "The value must be one of the followings: 0,1,3,5,7,14,30,60,90,120,150,180,365,400,545,731,1827,3653."
+    # Reference: https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutRetentionPolicy.html
+  }
+}
+
+variable "custom_dhcp_options" {
+  description = "[OPTIONAL] Values to create a custom DHCP options set"
+  # Reference: https://docs.aws.amazon.com/vpc/latest/userguide/DHCPOptionSet.html
+  type = object({
+    enabled              = bool
+    domain_name          = optional(string)
+    domain_name_servers  = optional(list(string))
+    ntp_servers          = optional(list(string))
+    netbios_name_servers = optional(list(string))
+    netbios_node_type    = optional(number)
+  })
+
+  default = {
+    enabled              = false
+    domain_name          = null
+    domain_name_servers  = null
+    ntp_servers          = null
+    netbios_name_servers = null
+    netbios_node_type    = null
+  }
+
+  validation {
+    condition = (
+      var.custom_dhcp_options.netbios_node_type == 1 ||
+      var.custom_dhcp_options.netbios_node_type == 2 ||
+      var.custom_dhcp_options.netbios_node_type == 4 ||
+      var.custom_dhcp_options.netbios_node_type == 8 ||
+      var.custom_dhcp_options.netbios_node_type == null
+    )
+    error_message = "The value must be one of the followings: 1,2,4,8 AWS recommendation is 2."
+  }
+}
+
+variable "force_bucket_destroy" {
+  # This is related to the VPC Flow Logs, if S3 is the destination.
+  # Setting this to true will force the bucket to be destroyed when the module is destroyed.
+  # WARNING: Use only if you are sure that the bucket is not used by other resources and it is safe to delete it.
+  # Usefull for testing purposes and lower environments.
+  description = "[OPTIONAL] A boolean that indicates all objects should be deleted from the bucket so that the bucket can be destroyed without error. These objects are not recoverable."
+  type        = bool
+  default     = false
 }
