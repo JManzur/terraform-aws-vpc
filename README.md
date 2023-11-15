@@ -82,7 +82,7 @@ cidrsubnet(prefix, newbits, netnum)
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.22.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.25.0 |
 
 ## Modules
 
@@ -106,12 +106,15 @@ No modules.
 | [aws_route_table_association.private_multi_natgw](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table_association) | resource |
 | [aws_route_table_association.private_one_nat_gw](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table_association) | resource |
 | [aws_s3_bucket.vpc_flow_logs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket) | resource |
+| [aws_s3_bucket_lifecycle_configuration.vpc_flow_logs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_lifecycle_configuration) | resource |
 | [aws_s3_bucket_public_access_block.vpc_flow_logs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_public_access_block) | resource |
 | [aws_s3_bucket_server_side_encryption_configuration.vpc_flow_logs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_server_side_encryption_configuration) | resource |
 | [aws_s3_bucket_versioning.vpc_flow_logs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_versioning) | resource |
 | [aws_subnet.private](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet) | resource |
 | [aws_subnet.public](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet) | resource |
 | [aws_vpc.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc) | resource |
+| [aws_vpc_dhcp_options.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_dhcp_options) | resource |
+| [aws_vpc_dhcp_options_association.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_dhcp_options_association) | resource |
 | [aws_availability_zones.available](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/availability_zones) | data source |
 | [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
 | [aws_iam_policy_document.cloudwatch](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
@@ -123,14 +126,14 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_aggregation_interval"></a> [aggregation\_interval](#input\_aggregation\_interval) | [OPTIONAL] The maximum interval of time during which a flow of packets is captured and aggregated into a flow log record. | `number` | `600` | no |
-| <a name="input_logs_retention"></a> [logs\_retention](#input\_logs\_retention) | [OPTIONAL] The number of days to retain VPC Flow Logs in CloudWatch | `number` | `0` | no |
+| <a name="input_custom_dhcp_options"></a> [custom\_dhcp\_options](#input\_custom\_dhcp\_options) | [OPTIONAL] Values to create a custom DHCP options set | <pre>object({<br>    enabled              = bool<br>    domain_name          = optional(string)<br>    domain_name_servers  = optional(list(string))<br>    ntp_servers          = optional(list(string))<br>    netbios_name_servers = optional(list(string))<br>    netbios_node_type    = optional(number)<br>  })</pre> | <pre>{<br>  "domain_name": null,<br>  "domain_name_servers": null,<br>  "enabled": false,<br>  "netbios_name_servers": null,<br>  "netbios_node_type": null,<br>  "ntp_servers": null<br>}</pre> | no |
+| <a name="input_force_bucket_destroy"></a> [force\_bucket\_destroy](#input\_force\_bucket\_destroy) | [OPTIONAL] A boolean that indicates all objects should be deleted from the bucket so that the bucket can be destroyed without error. These objects are not recoverable. | `bool` | `false` | no |
 | <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | [REQUIRED] Prefix to use in VPC resource naming and tagging | `string` | n/a | yes |
-| <a name="input_one_nat_per_subnet"></a> [one\_nat\_per\_subnet](#input\_one\_nat\_per\_subnet) | [OPTIONAL] If set to false, only one NAT gateway will be deploy per private subnet | `bool` | `false` | no |
+| <a name="input_one_nat_per_subnet"></a> [one\_nat\_per\_subnet](#input\_one\_nat\_per\_subnet) | [OPTIONAL] If set to false, only one NAT gateway will be deploy on the vpc. If set to true, one NAT gateway will be deployed per private subnet. | `bool` | `false` | no |
 | <a name="input_private_subnet_list"></a> [private\_subnet\_list](#input\_private\_subnet\_list) | [REQUIRED] List of key value maps to build the CIDR using the cidrsubnets function, plus the value name and index number for the availability zone | <pre>list(object({<br>    name    = string<br>    az      = number<br>    newbits = number<br>    netnum  = number<br>  }))</pre> | n/a | yes |
 | <a name="input_public_subnet_list"></a> [public\_subnet\_list](#input\_public\_subnet\_list) | [REQUIRED] List of key value maps to build the CIDR using the cidrsubnets function, plus the value name and index number for the availability zone | <pre>list(object({<br>    name    = string<br>    az      = number<br>    newbits = number<br>    netnum  = number<br>  }))</pre> | n/a | yes |
 | <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr) | [REQUIRED] The VPC CIDR block, Required format: '0.0.0.0/0' | `string` | n/a | yes |
-| <a name="input_vpc_flow_logs_destination"></a> [vpc\_flow\_logs\_destination](#input\_vpc\_flow\_logs\_destination) | [OPTIONAL] The type of the logging destination | `string` | `"CloudWatch"` | no |
+| <a name="input_vpc_flow_logs"></a> [vpc\_flow\_logs](#input\_vpc\_flow\_logs) | [OPTIONAL] The configuration of the VPC Flow Logs | <pre>object({<br>    enabled              = bool<br>    destination          = optional(string)<br>    aggregation_interval = optional(number)<br>    logs_retention       = optional(number)<br>  })</pre> | <pre>{<br>  "aggregation_interval": null,<br>  "destination": null,<br>  "enabled": false,<br>  "logs_retention": 0<br>}</pre> | no |
 
 ## Outputs
 
