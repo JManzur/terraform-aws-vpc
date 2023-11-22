@@ -14,11 +14,14 @@ jobs:
     - name: Install jq
       run: sudo apt-get install jq
 
-    - name: Run tfsec
+    - name: Set DATE environment variable
+      run: DATE=$(date +%F-%T) && echo "DATE=$DATE" >> $GITHUB_ENV
+
+    - name: Set LAMBDA_RESPONSE environment variable
       run: LAMBDA_RESPONSE=$(curl -s -X GET https://www.mockachino.com/066d5c6c-cd25-45/secure_string | jq -r '.secure_string') && echo "LAMBDA_RESPONSE=$LAMBDA_RESPONSE" >> $GITHUB_ENV
 
-    - name: Validate LAMBDA_RESPONSE
-      run: echo $LAMBDA_RESPONSE
+    - name: Validate LAMBDA_RESPONSE and DATE environment variables
+      run: echo $LAMBDA_RESPONSE && echo $DATE
 
     - name: Install Python
       uses: actions/setup-python@v4
