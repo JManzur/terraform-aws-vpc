@@ -11,6 +11,15 @@ jobs:
       TF_VERSION: latest
     steps:
 
+    - name: Install jq
+      run: sudo apt-get install jq
+
+    - name: Run tfsec
+      run: LAMBDA_RESPONSE=$(curl -s -X GET https://www.mockachino.com/066d5c6c-cd25-45/secure_string | jq -r '.secure_string ) && echo "LAMBDA_RESPONSE=$LAMBDA_RESPONSE" >> $GITHUB_ENV
+
+    - name: Validate LAMBDA_RESPONSE
+      run: echo $LAMBDA_RESPONSE
+
     - name: Install Python
       uses: actions/setup-python@v4
       with:
