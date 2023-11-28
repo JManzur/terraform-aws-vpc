@@ -4,9 +4,34 @@ Terraform Module to deploy a VPC.
 
 The module accepts a lists of public and private subnets, which are specified with the `public_subnet_list` and `private_subnet_list` parameters, respectively. Each subnet in the list is defined with a name, availability zone (AZ), CIDR range, and network number. This CIDR is built using the `cidrsubnet` function (more details below).
 
-If the `one_nat_per_subnet` parameter is set to true, means that a network address translation (NAT) gateway will be created for each subnet in the VPC. NAT gateways allow instances in private subnets to access the internet, while preventing the internet from initiating connections to those instances.
+## Conditionals deployment for multiple VPC deployment scenarios:
+
+- **NAT Gateway**: The variable `nat_gateway_settings` can be set to avoid deploying a NAT Gateway, deploy one NAT Gateway for the entire VPC, or deploy one NAT Gateway per private subnet.
+    - Default: One NAT Gateway for the entire VPC
+- **DHCP Options**: The variable `custom_dhcp_options` can be set to deploy a custom DHCP Options set or use the default DHCP Options set.
+    - Default: Use the default DHCP Options set.
+- **VPC Flow Logs**: The variable `vpc_flow_logs` can be set to deploy VPC Flow Logs to CloudWatch, S3, or not deploy VPC Flow Logs at all.
+    - Default: Not enable VPC Flow Logs.
+- **Subnets**: The variable `public_subnet_list` and `private_subnet_list` can be set to deploy public and private subnets, only public subnets, only private subnets, or no subnets at all.
+    - Default: Empty lists for both variables, meaning no subnets will be deployed.
+    - IMPORTANT: If you are not public subnets also no NAT Gateway will be deployed even if the `nat_gateway_settings.enabled` variable is set to `true`.
 
 > :information_source: More details about each variable can be found in the **variables.tf** file.
+
+### This module have been tested with the following configurations:
+
+- Multiple public and private subnets.
+- No Public Subnets.
+- No Private Subnets.
+- No subnets.
+- No NAT Gateway.
+- One NAT Gateway.
+- One NAT Gatway per Subnet/AZ.
+- Custom DHCP Options.
+- No custom DHCP Options.
+- No VPC Flow Logs.
+- VPC Flow Logs with destination CloudWatch.
+- VPC Flow Logs with destinition S3.
 
 ## How-To use this module:
 

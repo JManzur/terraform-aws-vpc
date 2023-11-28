@@ -1,6 +1,4 @@
 # VPC Definition
-
-# The following tfsec ignore was added to allow the VPC creation without VPC Flow Logs
 #tfsec:ignore:aws-ec2-require-vpc-flow-logs-for-all-vpcs
 resource "aws_vpc" "this" {
   cidr_block           = var.vpc_cidr
@@ -52,16 +50,21 @@ resource "aws_default_route_table" "public" {
   tags = { Name = "${var.name_prefix}-Default-RT" }
 }
 
+locals {
+  # Logic to determine the number of NAT Gateways to create:
+  nat_gateway_count = var.nat_gateway_settings.enabled ? (var.nat_gateway_settings.one_per_subnet ? length(var.private_subnet_list) : 1) : 0
+}
+
 # EIP for NAT Gateway
 resource "aws_eip" "nat_gateway" {
-  count = var.one_nat_per_subnet ? length(var.private_subnet_list) : 1
+  count = length(var.public_subnet_list) == 0 || length(var.private_subnet_list) == 0 ? 0 : local.nat_gateway_count
 
   domain = "vpc"
 }
 
 # NAT Gateway
 resource "aws_nat_gateway" "this" {
-  count = var.one_nat_per_subnet ? length(var.private_subnet_list) : 1
+  count = length(var.public_subnet_list) == 0 || length(var.private_subnet_list) == 0 ? 0 : local.nat_gateway_count
 
   allocation_id = aws_eip.nat_gateway[count.index].id
   subnet_id     = aws_subnet.public[count.index].id
@@ -71,7 +74,7 @@ resource "aws_nat_gateway" "this" {
 
 # Private Route Table
 resource "aws_route_table" "private" {
-  count = var.one_nat_per_subnet ? length(var.private_subnet_list) : 1
+  count = length(var.public_subnet_list) == 0 || length(var.private_subnet_list) == 0 ? 0 : local.nat_gateway_count
 
   vpc_id = aws_vpc.this.id
 
@@ -85,14 +88,14 @@ resource "aws_route_table" "private" {
 
 # Private Subnets Association
 resource "aws_route_table_association" "private_one_nat_gw" {
-  count = var.one_nat_per_subnet ? 0 : length(var.private_subnet_list)
+  count = length(var.public_subnet_list) == 0 || length(var.private_subnet_list) == 0 ? 0 : local.nat_gateway_count
 
   subnet_id      = aws_subnet.private[count.index].id
   route_table_id = aws_route_table.private[0].id
 }
 
 resource "aws_route_table_association" "private_multi_natgw" {
-  count = var.one_nat_per_subnet ? length(var.private_subnet_list) : 0
+  count = length(var.public_subnet_list) == 0 || length(var.private_subnet_list) == 0 ? 0 : local.nat_gateway_count
 
   subnet_id      = aws_subnet.private[count.index].id
   route_table_id = aws_route_table.private[count.index].id

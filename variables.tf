@@ -22,6 +22,8 @@ variable "public_subnet_list" {
     newbits = number
     netnum  = number
   }))
+
+  default = [] # Empty list is allowed if no public subnets are required
 }
 
 variable "private_subnet_list" {
@@ -32,13 +34,24 @@ variable "private_subnet_list" {
     newbits = number
     netnum  = number
   }))
+
+  default = [] # Empty list is allowed if no private subnets are required
 }
 
 /* Optionals variables */
-variable "one_nat_per_subnet" {
-  description = "[OPTIONAL] If set to false, only one NAT gateway will be deploy on the vpc. If set to true, one NAT gateway will be deployed per private subnet."
-  type        = bool
-  default     = false
+variable "nat_gateway_settings" {
+  description = "[OPTIONAL] Allows the conditional creation of NAT Gateways, and the number of NAT Gateways to create"
+  type = object({
+    enabled        = bool           # If true, it will create NAT Gateways, if false, it will not create NAT Gateways
+    one_per_subnet = optional(bool) # If true, it will create one NAT Gateway per subnet, if false, it will create one NAT Gateway per VPC
+  })
+
+  # IMPORTANT: If no public subnets are defined, then NAT Gateways are not created.
+
+  default = {
+    enabled        = true
+    one_per_subnet = false
+  }
 }
 
 variable "vpc_flow_logs" {
