@@ -39,7 +39,7 @@ The following is an example of how to use the module, here the minimum input var
 
 ```bash
 module "vpc" {
-  source                    = "git::https://github.com/JManzur/aws-vpc.git?ref=v1.0.2"
+  source                    = "git::https://github.com/JManzur/aws-vpc.git?ref=v1.1.1"
   name_prefix               = "Demo"
   vpc_cidr                  = "10.22.0.0/16"
   public_subnet_list = [

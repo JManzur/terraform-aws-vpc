@@ -15,7 +15,13 @@ variable "vpc_cidr" {
 }
 
 variable "public_subnet_list" {
-  description = "[REQUIRED] List of key value maps to build the CIDR using the cidrsubnets function, plus the value name and index number for the availability zone"
+  description = <<EOF
+  [REQUIRED] List of key value maps to build the CIDR using the cidrsubnets function, plus the value name and index number for the availability zone:
+    - name: The name of the subnet.
+    - az: The index number of the availability zone.
+    - newbits: The number of bits to add to the VPC CIDR to create the subnet CIDR.
+    - netnum: The index number of the subnet.
+  EOF
   type = list(object({
     name    = string
     az      = number
@@ -27,7 +33,13 @@ variable "public_subnet_list" {
 }
 
 variable "private_subnet_list" {
-  description = "[REQUIRED] List of key value maps to build the CIDR using the cidrsubnets function, plus the value name and index number for the availability zone"
+  description = <<EOF
+  [REQUIRED] List of key value maps to build the CIDR using the cidrsubnets function, plus the value name and index number for the availability zone:
+    - name: The name of the subnet.
+    - az: The index number of the availability zone.
+    - newbits: The number of bits to add to the VPC CIDR to create the subnet CIDR.
+    - netnum: The index number of the subnet.
+  EOF
   type = list(object({
     name    = string
     az      = number
@@ -40,10 +52,14 @@ variable "private_subnet_list" {
 
 /* Optionals variables */
 variable "nat_gateway_settings" {
-  description = "[OPTIONAL] Allows the conditional creation of NAT Gateways, and the number of NAT Gateways to create"
+  description = <<EOF
+  [OPTIONAL] Allows the conditional creation of NAT Gateways, and the number of NAT Gateways to create:
+    - enabled: If true, it will create NAT Gateways, if false, it will not create NAT Gateways.
+    - one_per_subnet: If true, it will create one NAT Gateway per subnet, if false, it will create only one NAT Gateway for the VPC.
+  EOF
   type = object({
-    enabled        = bool           # If true, it will create NAT Gateways, if false, it will not create NAT Gateways
-    one_per_subnet = optional(bool) # If true, it will create one NAT Gateway per subnet, if false, it will create one NAT Gateway per VPC
+    enabled        = bool
+    one_per_subnet = optional(bool)
   })
 
   # IMPORTANT: If no public subnets are defined, then NAT Gateways are not created.
@@ -55,7 +71,13 @@ variable "nat_gateway_settings" {
 }
 
 variable "vpc_flow_logs" {
-  description = "[OPTIONAL] The configuration of the VPC Flow Logs"
+  description = <<EOF
+  [OPTIONAL] The configuration of the VPC Flow Logs:
+    - enabled: If true, it will create the VPC Flow Logs, if false, it will not create the VPC Flow Logs
+    - destination: The destination of the VPC Flow Logs, valid values are: S3, CloudWatch, null
+    - aggregation_interval: The interval in seconds that you want to aggregate the flow logs. Valid values are: 60, 600, null
+    - logs_retention: The number of days you want to retain log events in the specified log group. Valid values are: 0,1,3,5,7,14,30,60,90,120,150,180,365,400,545,731,1827,3653, null
+  EOF
   type = object({
     enabled              = bool
     destination          = optional(string)
@@ -116,7 +138,15 @@ variable "vpc_flow_logs" {
 }
 
 variable "custom_dhcp_options" {
-  description = "[OPTIONAL] Values to create a custom DHCP options set"
+  description = <<EOF
+  [OPTIONAL] Values to create a custom DHCP options set:
+    - enabled: If true, it will create the custom DHCP options set, if false, it will not create the custom DHCP options set.
+    - domain_name: The domain name.
+    - domain_name_servers: List of domain name servers.
+    - ntp_servers: List of NTP servers.
+    - netbios_name_servers: List of NetBIOS name servers.
+    - netbios_node_type: The NetBIOS node type (1,2,4,8). AWS recommendation is 2.
+  EOF
   # Reference: https://docs.aws.amazon.com/vpc/latest/userguide/DHCPOptionSet.html
   type = object({
     enabled              = bool
