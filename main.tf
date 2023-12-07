@@ -83,16 +83,17 @@ resource "aws_route_table" "private" {
     nat_gateway_id = aws_nat_gateway.this[count.index].id
   }
 
-  tags = { Name = "${var.name_prefix}-RT-${count.index}" }
+  tags = { Name = "${var.name_prefix}-Private-RT-${count.index}" }
 }
 
 # Private Subnets Association
 resource "aws_route_table_association" "private_one_nat_gw" {
-  count = length(var.public_subnet_list) == 0 || length(var.private_subnet_list) == 0 ? 0 : local.nat_gateway_count
+  for_each = { for subnet in aws_subnet.private : subnet.id => subnet.id if !var.nat_gateway_settings.one_per_subnet }
 
-  subnet_id      = aws_subnet.private[count.index].id
+  subnet_id      = each.value
   route_table_id = aws_route_table.private[0].id
 }
+
 
 resource "aws_route_table_association" "private_multi_natgw" {
   count = length(var.public_subnet_list) == 0 || length(var.private_subnet_list) == 0 ? 0 : local.nat_gateway_count
